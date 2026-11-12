@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis XV Años - Valerie</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800&family=Great+Vibes&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        royalGold: '#d4af37',
+                        royalGoldLight: '#f9f3d9',
+                        royalGoldDark: '#997a15',
+                        luxuryBlue: '#2b5797',
+                        luxuryBlueLight: '#5b89c7',
+                        luxuryBlueSoft: '#dbeafe',
+                        ivoryPaper: '#fbf9f4',
+                        ivoryCard: '#f4efe4',
+                    },
+                    fontFamily: {
+                        script: ['Great Vibes', 'cursive'],
+                        serif: ['Cinzel', 'serif'],
+                        playfair: ['Playfair Display', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Papelería de lujo */
+        .ivory-paper {
+            background-color: #fbf9f4;
+            background-image: radial-gradient(#e5dec9 0.5px, transparent 0.5px), radial-gradient(#e5dec9 0.5px, #fbf9f4 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        .luxury-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f7f3e9 100%);
+            border: 2px solid #e2d4b7;
+            box-shadow: 0 12px 28px -5px rgba(27, 54, 93, 0.12), inset 0 0 0 3px rgba(255,255,255,0.8);
+            position: relative;
+        }
+
+        /* Animaciones 3D para las Capas PNG del Sobre */
+        .envelope-stage {
+            perspective: 1400px;
+        }
+
+        .layer-solapa {
+            transform-origin: 50% 24%; /* Punto de bisagra donde dobla la solapa */
+            transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+            transform-style: preserve-3d;
+        }
+
+        .solapa-abierta {
+            transform: rotateX(175deg);
+            filter: brightness(0.95);
+        }
+
+        .layer-sello {
+            transition: transform 0.6s ease, opacity 0.6s ease, filter 0.3s ease;
+            animation: pulse-seal 2.8s infinite ease-in-out;
+        }
+
+        .sello-desatado {
+            transform: scale(1.15) translateY(15px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-seal {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4)); transform: scale(1); }
+            50% { filter: drop-shadow(0 0 22px rgba(212, 175, 55, 0.9)); transform: scale(1.02); }
+        }
+
+        /* Movimiento sutil de brisa en las flores del primer plano */
+        @keyframes gentle-breeze {
+            0%, 100% { transform: scale(1.01) rotate(0deg); }
+            50% { transform: scale(1.025) rotate(0.4deg); }
+        }
+        .layer-flores {
+            animation: gentle-breeze 6s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Efecto de destello de luz cruzando la portada */
+        @keyframes light-sweep {
+            0% { left: -100%; }
+            50%, 100% { left: 200%; }
+        }
+        .shimmer-overlay {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-25deg);
+            animation: light-sweep 4.5s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Ocultar scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Canvas de destellos mágicos */
+        #magicCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+
+        #scratchCanvas {
+            touch-action: none;
+            cursor: pointer;
+        }
+
+        .glow-gold {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-800 font-sans antialiased selection:bg-amber-200 selection:text-amber-900 min-h-screen flex justify-center items-center p-0 m-0">
+
+    <!-- 1. POLVO DE HADAS Y DESTELLOS MÁGICOS -->
+    <canvas id="magicCanvas"></canvas>
+
+    <!-- Modal Lightbox para Fotos Interactivas -->
+    <div id="photoModal" class="fixed inset-0 bg-slate-950/90 z-50 hidden flex flex-col justify-center items-center p-4 backdrop-blur-md transition-opacity duration-300" onclick="closePhotoModal()">
+        <button onclick="closePhotoModal()" class="absolute top-5 right-5 text-amber-300 text-3xl hover:text-white z-50">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="p-3 bg-white rounded-2xl border-4 border-amber-300 shadow-2xl max-w-sm">
+            <img id="modalImg" src="" class="max-h-[70vh] max-w-full rounded-xl object-contain">
+        </div>
+        <p id="modalCaption" class="text-amber-200 font-script text-3xl mt-4 text-center"></p>
+        <p class="text-xs text-amber-100/70 mt-1">Toca en cualquier parte para cerrar</p>
+    </div>
+
+    <!-- Contenedor Estilo App Móvil Papelería de Lujo Centrado -->
+    <main class="w-full max-w-md ivory-paper min-h-screen shadow-2xl relative overflow-hidden flex flex-col justify-between my-0 md:my-6 md:rounded-3xl border-2 border-amber-300/60">
+
+        <!-- BOTÓN FLOTANTE DE MÚSICA -->
+        <div class="fixed top-4 right-4 z-50">
+            <button id="musicToggle" onclick="toggleAudio()" class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 text-sky-950 border-2 border-white flex items-center justify-center shadow-2xl hover:scale-110 transition transform active:scale-95 group glow-gold">
+                <i id="vinylIcon" class="fa-solid fa-compact-disc text-2xl animate-spin-slow"></i>
+                <span id="musicPulse" class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-blue-600 border-2 border-white animate-pulse"></span>
+            </button>
+        </div>
+
+        <!-- Audio "So This Is Love" -->
+        <audio id="bgMusic" loop preload="auto">
+            <source src="audio/so-this-is-love.mp3" type="audio/mpeg">
+            <source src="https://assets.mixkit.co/music/preview/mixkit-romantic-tango-piano-1100.mp3" type="audio/mpeg">
+        </audio>
+
+        <!-- =========================================================================
+             SECCIÓN 1: PORTADA CON TUS 5 CAPAS GRÁFICAS ENSAMBLADAS EN 3D
+             ========================================================================= -->
+        <section id="envelopeSection" onclick="openEnvelope()" class="envelope-stage relative w-full h-screen min-h-[720px] max-h-[900px] overflow-hidden cursor-pointer select-none z-40 transition-all duration-1000 bg-sky-100">
+            
+            <!-- CAPA 1: Fondo de Satén Azul -->
+            <img src="images/fondo_satin.jpg" 
+                 onerror="this.src='https://images.unsplash.com/photo-1528459801416-a9e53bbf4e17?auto=format&fit=crop&q=80&w=1000'" 
+                 alt="Fondo Satén" 
+                 class="absolute inset-0 w-full h-full object-cover z-0">
+
+            <!-- CAPA 2: Cuerpo del Sobre y Tarjeta "Valerie - Mis XV Años" -->
+            <img id="sobreCuerpo" 
+                 src="images/sobre_cuerpo.png" 
+                 onerror="this.style.display='none'; document.getElementById('fallbackEnvelope').classList.remove('hidden');"
+                 alt="Cuerpo del Sobre" 
+                 class="absolute inset-0 w-full h-full object-cover z-10 transition-transform duration-1000">
+
+            <!-- CAPA 3: Solapa Superior + Monograma "V" (Esta es la que rota en 3D hacia arriba) -->
+            <img id="sobreSolapa" 
+                 src="images/sobre_solapa.png" 
+                 onerror="this.style.display='none'"
+                 alt="Solapa del Sobre" 
+                 class="layer-solapa absolute inset-0 w-full h-full object-cover z-20">
+
+            <!-- CAPA 4: Lazo de Satén y Sello de Corona (Botón brillante interactivo) -->
+            <img id="selloLazo" 
+                 src="images/sello_lazo.png" 
+                 onerror="this.style.display='none'"
+                 alt="Lazo y Sello Real" 
+                 class="layer-sello absolute inset-0 w-full h-full object-cover z-30">
+
+            <!-- CAPA 5: Flores en Primer Plano (Esquinas superior izquierda e inferior derecha) -->
+            <img id="floresPrimerPlano" 
+                 src="images/flores_primer_plano.png" 
+                 onerror="this.style.display='none'"
+                 alt="Arreglo Floral" 
+                 class="layer-flores absolute inset-0 w-full h-full object-cover z-40">
+
+            <!-- Destello mágico que recorre la pantalla invitando a tocar -->
+            <div class="shimmer-overlay z-40"></div>
+
+            <!-- Respaldo visual automático SOLO si aún no subes las imágenes a /images -->
+            <div id="fallbackEnvelope" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-20 bg-sky-900/40 backdrop-blur-xs">
+                <div class="bg-white/95 p-6 rounded-3xl border-4 border-amber-300 shadow-2xl max-w-xs">
+                    <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-amber-100 border-2 border-amber-400 flex items-center justify-center text-amber-700 font-serif font-bold text-2xl">V</div>
+                    <h2 class="font-script text-6xl text-sky-950">Valerie</h2>
+                    <p class="font-serif text-xs tracking-widest uppercase text-amber-800 font-bold mt-1">Mis XV Años</p>
+                    <div class="mt-4 py-2 px-4 bg-amber-100 rounded-full border border-amber-300 text-[11px] font-serif font-bold text-sky-950 animate-pulse">
+                        TOCA PARA DESPLEGAR LA INVITACIÓN
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-3">(Coloca tus 5 archivos en la carpeta <b>images/</b> para ver tu diseño real aquí)</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =========================================================================
+             CONTENIDO PRINCIPAL DE LA INVITACIÓN (SE REVELA AL ABRIR EL SOBRE)
+             ========================================================================= -->
+        <div id="mainContent" class="hidden opacity-0 transition-opacity duration-1000">
+
+            <!-- PORTADA INTERIOR: RETRATO DE VALERIE -->
+            <section class="relative min-h-[92vh] flex flex-col justify-between p-6 text-center ivory-paper overflow-hidden">
+                
+                <div class="pt-4 z-10">
+                    <p class="font-serif text-[11px] tracking-[0.3em] uppercase text-amber-700 font-semibold">Invitación Especial</p>
+                    <div class="w-24 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto my-2"></div>
+                </div>
+
+                <!-- Marco Ovalado de Retrato -->
+                <div class="relative z-10 my-auto py-2">
+                    <div class="w-64 h-80 mx-auto relative p-2 bg-white rounded-full shadow-2xl border-4 border-amber-400 overflow-hidden ring-8 ring-amber-100/80">
+                        <img src="images/valerie_portada.jpg" 
+                             onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=1000'" 
+                             class="w-full h-full object-cover rounded-full">
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h1 class="font-script text-7xl text-sky-900 drop-shadow-sm">Valerie</h1>
+                        <p class="font-serif tracking-[0.25em] text-sm font-bold uppercase text-amber-800 mt-1">Mis XV Años</p>
+                        <p class="font-serif font-medium tracking-widest text-xs text-slate-700 uppercase mt-2 bg-amber-100/80 inline-block px-4 py-1 rounded-full border border-amber-300">24 DE ENERO 2027</p>
+                    </div>
+                </div>
+
+                <!-- Botón de música -->
+                <div class="z-10 pb-4">
+                    <button onclick="toggleAudio()" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white text-sky-950 font-serif text-xs font-bold border-2 border-amber-400 shadow-md hover:bg-amber-50 transition active:scale-95">
+                        <i class="fa-solid fa-music text-amber-600 animate-pulse"></i>
+                        <span>Haz clic para escuchar el audio</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- HISTORIA DE INFANCIA -->
+            <section class="py-10 px-4 ivory-paper relative border-t-2 border-b-2 border-amber-200">
+                <div class="text-center mb-6">
+                    <p class="font-serif text-xs tracking-widest uppercase text-amber-700">Un cuento llamado</p>
+                    <h2 class="font-script text-5xl text-sky-900 drop-shadow-sm">Valerie...</h2>
+                    <p class="text-[11px] text-slate-600 font-serif mt-1 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-hand-pointer text-amber-600"></i> Fotos de mi infancia (Toca para expandir)
+                    </p>
+                </div>
+
+                <div class="flex gap-4 overflow-x-auto no-scrollbar py-4 px-2 snap-x snap-mandatory">
+                    <div onclick="openPhotoModal(this.querySelector('img').src, '')" class="snap-center shrink-0 w-48 luxury-card p-3 rounded-2xl shadow-xl transform rotate-[-2deg] hover:rotate-0 hover:scale-105 transition cursor-pointer">
+                        <div class="h-60 rounded-xl overflow-hidden border border-amber-200">
+                            <img src="images/infancia_1.jpg" onerror="this.src='https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=400'" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+
+                    <div onclick="openPhotoModal(this.querySelector('img').src, '')" class="snap-center shrink-0 w-48 luxury-card p-3 rounded-2xl shadow-xl transform rotate-[2deg] hover:rotate-0 hover:scale-105 transition cursor-pointer">
+                        <div class="h-60 rounded-xl overflow-hidden border border-amber-200">
+                            <img src="images/infancia_2.jpg" onerror="this.src='https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&q=80&w=400'" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+
+                    <div onclick="openPhotoModal(this.querySelector('img').src, '')" class="snap-center shrink-0 w-48 luxury-card p-3 rounded-2xl shadow-xl transform rotate-[-2deg] hover:rotate-0 hover:scale-105 transition cursor-pointer">
+                        <div class="h-60 rounded-xl overflow-hidden border border-amber-200">
+                            <img src="images/infancia_3.jpg" onerror="this.src='https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&q=80&w=400'" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+
+                    <div onclick="openPhotoModal(this.querySelector('img').src, '')" class="snap-center shrink-0 w-48 luxury-card p-3 rounded-2xl shadow-xl transform rotate-[2deg] hover:rotate-0 hover:scale-105 transition cursor-pointer">
+                        <div class="h-60 rounded-xl overflow-hidden border border-amber-200">
+                            <img src="images/infancia_4.jpg" onerror="this.src='https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=400'" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TARJETA DE INVITACIÓN CON RASPADITO -->
+            <section id="scratchSection" class="py-10 px-6 text-center relative ivory-paper">
+                <div class="max-w-xs mx-auto luxury-card p-6 rounded-3xl shadow-2xl relative overflow-hidden border-2 border-amber-300">
+                    
+                    <div class="w-10 h-10 mx-auto mb-2 text-amber-600 text-2xl">👑</div>
+
+                    <div id="hiddenMessage" class="space-y-4 py-2">
+                        <p class="font-serif italic text-sky-950 leading-relaxed text-xs font-medium">
+                            "Me haría mucha ilusión que me acompañes a celebrar mis XV años. Es un momento especial para mí y me encantaría compartirlo con las personas que más quiero."
+                        </p>
+                        <p class="font-serif italic text-sky-950 leading-relaxed text-xs font-medium">
+                            "Tu presencia haría que esta noche sea aún más inolvidable."
+                        </p>
+                        <div class="font-script text-5xl text-sky-900 pt-1">
+                            Valerie
+                        </div>
+                    </div>
+
+                    <canvas id="scratchCanvas" class="absolute inset-0 w-full h-full z-20 rounded-3xl"></canvas>
+                </div>
+                <p id="scratchHint" class="text-xs text-sky-900 font-serif font-semibold mt-4 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i> Rasca con tu dedo la tarjeta para revelar el mensaje
+                </p>
+            </section>
+
+            <!-- CALENDARIO Y CUENTA REGRESIVA -->
+            <section class="py-8 px-6 luxury-card rounded-3xl mx-4 my-6 text-center border-2 border-amber-300 shadow-xl">
+                <p class="font-serif text-sky-950 text-xl font-bold uppercase tracking-wider mb-1">Enero 2027</p>
+
+                <div class="max-w-xs mx-auto bg-white/80 p-4 rounded-2xl border border-amber-200 mt-3">
+                    <div class="grid grid-cols-7 gap-1 text-center font-serif text-xs mb-2 text-sky-950 font-bold">
+                        <div>D</div><div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-sans text-slate-700">
+                        <div></div><div></div><div></div><div></div>
+                        <div class="p-1">1</div><div class="p-1">2</div><div class="p-1">3</div>
+                        <div class="p-1">4</div><div class="p-1">5</div><div class="p-1">6</div><div class="p-1">7</div><div class="p-1">8</div><div class="p-1">9</div><div class="p-1">10</div>
+                        <div class="p-1">11</div><div class="p-1">12</div><div class="p-1">13</div><div class="p-1">14</div><div class="p-1">15</div><div class="p-1">16</div><div class="p-1">17</div>
+                        <div class="p-1">18</div><div class="p-1">19</div><div class="p-1">20</div><div class="p-1">21</div><div class="p-1">22</div><div class="p-1">23</div>
+                        <div onclick="addCalendarEvent()" class="relative flex items-center justify-center p-1 cursor-pointer group">
+                            <span class="w-8 h-8 bg-gradient-to-r from-sky-600 to-amber-500 text-white rounded-full font-bold flex items-center justify-center ring-4 ring-amber-200 shadow-md">24</span>
+                        </div>
+                        <div class="p-1">25</div><div class="p-1">26</div><div class="p-1">27</div><div class="p-1">28</div><div class="p-1">29</div><div class="p-1">30</div>
+                        <div class="p-1">31</div>
+                    </div>
+                </div>
+
+                <button onclick="addCalendarEvent()" class="mt-4 inline-flex items-center gap-2 py-2 px-5 rounded-full bg-amber-400 text-sky-950 font-serif font-bold text-xs shadow-md hover:bg-amber-500 transition">
+                    <i class="fa-solid fa-calendar-plus"></i> Guardar Fecha en Google Calendar
+                </button>
+
+                <!-- CUENTA REGRESIVA -->
+                <div class="mt-6 bg-gradient-to-r from-sky-800 via-sky-900 to-sky-800 text-white p-4 rounded-2xl border-2 border-amber-300 shadow-lg max-w-xs mx-auto">
+                    <p class="text-[11px] font-serif uppercase tracking-widest text-amber-200 mb-2">Cuenta regresiva</p>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div>
+                            <span id="days" class="font-serif text-2xl font-bold block">00</span>
+                            <span class="text-[9px] uppercase tracking-wider text-sky-200">Días</span>
+                        </div>
+                        <div>
+                            <span id="hours" class="font-serif text-2xl font-bold block">00</span>
+                            <span class="text-[9px] uppercase tracking-wider text-sky-200">Horas</span>
+                        </div>
+                        <div>
+                            <span id="minutes" class="font-serif text-2xl font-bold block">00</span>
+                            <span class="text-[9px] uppercase tracking-wider text-sky-200">Min</span>
+                        </div>
+                        <div>
+                            <span id="seconds" class="font-serif text-2xl font-bold block">00</span>
+                            <span class="text-[9px] uppercase tracking-wider text-sky-200">Seg</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN DIVISORIA FOTO HORIZONTAL -->
+            <section class="my-0 relative overflow-hidden">
+                <div class="w-full h-64 bg-cover bg-center relative" style="background-image: url('images/foto_horizontal.jpg'), url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1000');">
+                    <div class="absolute inset-0 bg-gradient-to-b from-[#fbf9f4] via-transparent to-[#fbf9f4]"></div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN DETALLES DE LA FIESTA -->
+            <section class="py-6 px-6 space-y-5 ivory-paper">
+                
+                <!-- Recepción -->
+                <div class="luxury-card p-5 rounded-3xl text-center border-2 border-amber-300 shadow-md">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-sky-800 mb-2 border border-amber-300">
+                        <i class="fa-solid fa-location-dot text-xl"></i>
+                    </div>
+                    <h4 class="font-serif text-sky-950 text-base uppercase font-bold">Salón de Eventos</h4>
+                    <p class="font-semibold text-slate-800 text-sm mt-0.5">Club de Obras Públicas</p>
+
+                    <a href="https://google.com/maps/dir/ubicación/club+de+obras+públicas/data=!4m6!4m5!1m0!1m2!1m1!1s0x8eaf89bec042da87:0x7da3589d8d23d93b!3e0" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 text-xs text-sky-700 font-serif font-bold hover:underline">
+                        <span>Ver ubicación en Google Maps</span> <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </a>
+                </div>
+
+                <!-- Hora de llegada -->
+                <div class="luxury-card p-4 rounded-3xl text-center border-2 border-amber-300 shadow-md flex items-center justify-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-sky-800 border border-amber-300 shrink-0">
+                        <i class="fa-regular fa-clock text-xl"></i>
+                    </div>
+                    <div class="text-left">
+                        <h4 class="font-serif text-sky-950 text-xs uppercase font-bold">Hora de llegada:</h4>
+                        <p class="font-serif text-lg font-bold text-sky-900">6:00 P. M.</p>
+                    </div>
+                </div>
+
+                <!-- Dress Code -->
+                <div class="luxury-card p-5 rounded-3xl text-center border-2 border-amber-300 shadow-md">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-sky-800 mb-2 border border-amber-300">
+                        <i class="fa-solid fa-vest-patches text-xl"></i>
+                    </div>
+                    <h4 class="font-serif text-sky-950 text-base uppercase font-bold">Dress Code</h4>
+                    <p class="font-bold text-slate-800 text-sm mt-0.5">Ropa elegante</p>
+                    <p class="text-xs text-amber-800 font-serif italic mt-1">Los tonos azules están reservados para la quinceañera.</p>
+
+                    <div class="mt-4 space-y-2 max-w-xs mx-auto">
+                        <input type="text" id="colorCheckInput" placeholder="Consulta un color..." class="w-full px-4 py-2 text-xs rounded-xl border border-amber-300 focus:outline-none bg-white">
+                        <button onclick="checkOutfitColor()" class="w-full py-2 rounded-xl bg-sky-900 text-amber-200 font-serif text-xs font-bold shadow hover:bg-sky-800 transition">
+                            Consultar Permiso
+                        </button>
+                    </div>
+
+                    <div id="outfitResult" class="hidden mt-3 p-3 rounded-xl text-xs font-semibold"></div>
+
+                    <!-- Paleta de colores visual -->
+                    <div class="mt-4 pt-3 border-t border-amber-200 text-left">
+                        <p class="text-[11px] font-serif font-bold text-sky-950 mb-2">Paleta Visual de Colores:</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-5 h-5 rounded-full bg-sky-400 border border-white inline-flex items-center justify-center text-white text-[9px]">✕</span>
+                            <span class="w-5 h-5 rounded-full bg-blue-700 border border-white inline-flex items-center justify-center text-white text-[9px]">✕</span>
+                            <span class="text-[11px] text-rose-700 font-serif font-semibold">Azules (Reservados)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-pink-300 border border-white shadow"></span>
+                            <span class="w-5 h-5 rounded-full bg-emerald-600 border border-white shadow"></span>
+                            <span class="w-5 h-5 rounded-full bg-amber-400 border border-white shadow"></span>
+                            <span class="w-5 h-5 rounded-full bg-stone-300 border border-white shadow"></span>
+                            <span class="w-5 h-5 rounded-full bg-purple-400 border border-white shadow"></span>
+                            <span class="text-[11px] text-emerald-800 font-serif font-semibold ml-1">Permitidos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playlist -->
+                <div class="luxury-card p-5 rounded-3xl text-center border-2 border-amber-300 shadow-md">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-sky-800 mb-2 border border-amber-300">
+                        <i class="fa-solid fa-music text-xl"></i>
+                    </div>
+                    <h4 class="font-serif text-sky-950 text-base uppercase font-bold">¿Qué canción no puede faltar en la fiesta?</h4>
+                    
+                    <div class="mt-3 space-y-2">
+                        <input type="text" id="songInput" placeholder="Recomiéndala aquí..." class="w-full px-4 py-2 text-xs rounded-xl border border-amber-300 focus:outline-none bg-white">
+                        <button onclick="submitSong()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-800 to-sky-900 text-amber-200 font-serif text-xs font-bold shadow hover:opacity-95 transition">
+                            Recomendar Canción
+                        </button>
+                    </div>
+
+                    <div class="mt-4 space-y-2 text-left" id="songList">
+                        <div class="p-2.5 bg-white/90 rounded-xl flex items-center justify-between text-xs border border-amber-200">
+                            <div>
+                                <p class="font-bold text-sky-900">So This Is Love</p>
+                                <p class="text-[10px] text-slate-500">Recomendada por Valerie</p>
+                            </div>
+                            <button onclick="likeSong(this)" class="px-2.5 py-1 bg-amber-50 rounded-full text-rose-600 border border-amber-200 font-bold text-[10px] hover:scale-105 transition">
+                                ❤️ <span class="like-count">15</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mesa de Regalos -->
+                <div class="luxury-card p-5 rounded-3xl text-center border-2 border-amber-300 shadow-md">
+                    <div class="w-12 h-12 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-sky-800 mb-2 border border-amber-300">
+                        <i class="fa-solid fa-gift text-xl"></i>
+                    </div>
+                    <h4 class="font-serif text-sky-950 text-base font-bold">El mejor regalo es tu presencia.</h4>
+                    <p class="text-xs text-slate-600 font-serif mt-1">Pero, si deseas hacerme algún obsequio, puedes hacerlo mediante:</p>
+
+                    <div class="space-y-2 mt-4 text-xs font-serif font-semibold">
+                        <div class="p-3 rounded-xl bg-white border border-amber-200 flex items-center justify-between text-sky-950">
+                            <span class="flex items-center gap-2"><i class="fa-brands fa-amazon text-amber-600"></i> Regalo Amazon</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">Link de envío</span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-white border border-amber-200 flex items-center justify-between text-sky-950">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-bag-shopping text-rose-500"></i> Gift Card Zara</span>
+                            <i class="fa-solid fa-check text-emerald-600"></i>
+                        </div>
+                        <div class="p-3 rounded-xl bg-white border border-amber-200 flex items-center justify-between text-sky-950">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-envelope text-sky-700"></i> Lluvia de Sobres</span>
+                            <i class="fa-solid fa-check text-emerald-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- CONFIRMACIÓN DE ASISTENCIA Y PIE DE PÁGINA -->
+            <section class="relative min-h-[85vh] p-6 text-center flex flex-col justify-between ivory-paper border-t-2 border-amber-300">
+                <div class="my-auto space-y-6 pt-4 max-w-xs mx-auto">
+                    
+                    <div class="w-40 h-40 mx-auto rounded-full p-1.5 bg-gradient-to-tr from-amber-400 to-amber-200 shadow-xl overflow-hidden border-2 border-white">
+                        <img src="images/valerie_confirmacion.jpg" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600'" class="w-full h-full object-cover rounded-full">
+                    </div>
+
+                    <div>
+                        <h3 class="font-script text-6xl text-sky-950">Confirma tu asistencia</h3>
+                        <p class="font-serif italic text-xs text-amber-900 mt-2">¡Tu presencia hará este día aún más especial!</p>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <a href="https://wa.me/18093532299?text=Hola,%20deseo%20confirmar%20mi%20asistencia%20a%20los%2015%20A%C3%B1os%20de%20Valerie." target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-full bg-sky-900 text-amber-200 font-serif tracking-wider uppercase text-xs font-bold shadow-xl hover:bg-sky-800 transition border border-amber-300">
+                            <i class="fa-brands fa-whatsapp text-lg text-emerald-400"></i> (809) 353-2299
+                        </a>
+
+                        <a href="https://wa.me/18298680720?text=Hola%20Valerie,%20quiero%20confirmar%20mi%20asistencia%20a%20tus%2015%20A%C3%B1os." target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-full bg-sky-900 text-amber-200 font-serif tracking-wider uppercase text-xs font-bold shadow-xl hover:bg-sky-800 transition border border-amber-300">
+                            <i class="fa-brands fa-whatsapp text-lg text-emerald-400"></i> (829) 868-0720
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CRÉDITOS DEL CREADOR -->
+                <footer class="py-6 border-t border-amber-300/60 mt-8 text-center font-serif text-[11px] tracking-widest text-slate-700 space-y-1.5 uppercase">
+                    <p class="font-bold text-rose-800 tracking-wider">INVITACIÓN DIGITAL CREADA POR FRANYELI A.R.T</p>
+                    <p class="text-[10px] text-sky-900 font-semibold">
+                        FRANYELIART10@GMAIL.COM · VE +58 412-9000510
+                    </p>
+                    <p class="text-[9px] text-slate-500">
+                        © 2026 · TODOS LOS DERECHOS RESERVADOS
+                    </p>
+                </footer>
+            </section>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. POLVO DE HADAS Y DESTELLOS MÁGICOS ---
+        const canvas = document.getElementById('magicCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                this.color = `hsl(${Math.random() * 30 + 40}, 90%, 65%)`;
+                this.life = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.03;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function handlePointerMove(e) {
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            if (x && y) {
+                for (let i = 0; i < 2; i++) {
+                    particles.push(new Particle(x, y));
+                }
+            }
+        }
+        window.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('touchmove', handlePointerMove);
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // --- 2. APERTURA EN 3D DE LAS 5 CAPAS DEL SOBRE Y CONFETI ---
+        let isEnvelopeOpened = false;
+
+        function openEnvelope() {
+            if (isEnvelopeOpened) return;
+            isEnvelopeOpened = true;
+
+            const sello = document.getElementById('selloLazo');
+            const solapa = document.getElementById('sobreSolapa');
+            const cuerpo = document.getElementById('sobreCuerpo');
+            const envelopeSec = document.getElementById('envelopeSection');
+            const mainContent = document.getElementById('mainContent');
+            const bgMusic = document.getElementById('bgMusic');
+
+            // Paso 1: Desatar el lazo y sello central
+            if (sello) sello.classList.add('sello-desatado');
+
+            // Paso 2: Reproducir música de Cenicienta
+            bgMusic.play().catch(err => console.log('Audio requiere interacción:', err));
+
+            // Paso 3: Abrir la solapa en 3D hacia arriba y lanzar confeti
+            setTimeout(() => {
+                if (solapa) solapa.classList.add('solapa-abierta');
+                
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 140,
+                        spread: 85,
+                        origin: { y: 0.55 },
+                        colors: ['#d4af37', '#f3e5ab', '#2b5797', '#60a5fa', '#ffffff']
+                    });
+                }
+            }, 350);
+
+            // Paso 4: Efecto de acercamiento suave (zoom-in) y transición a la invitación
+            setTimeout(() => {
+                if (cuerpo) cuerpo.style.transform = 'scale(1.08)';
+                envelopeSec.classList.add('opacity-0');
+                
+                setTimeout(() => {
+                    envelopeSec.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    setTimeout(() => {
+                        mainContent.classList.remove('opacity-0');
+                        initScratchCard();
+                    }, 50);
+                }, 800);
+            }, 1450);
+        }
+
+        // --- 3. BOTÓN MÁGICO DE MÚSICA ---
+        function toggleAudio() {
+            const bgMusic = document.getElementById('bgMusic');
+            const vinylIcon = document.getElementById('vinylIcon');
+            const musicPulse = document.getElementById('musicPulse');
+
+            if (bgMusic.paused) {
+                bgMusic.play();
+                vinylIcon.classList.add('animate-spin-slow');
+                musicPulse.classList.remove('hidden');
+            } else {
+                bgMusic.pause();
+                vinylIcon.classList.remove('animate-spin-slow');
+                musicPulse.classList.add('hidden');
+            }
+        }
+
+        // --- 4. CARRUSEL LIGHTBOX DE FOTOS ---
+        function openPhotoModal(imgUrl, caption) {
+            document.getElementById('modalImg').src = imgUrl;
+            document.getElementById('modalCaption').innerText = caption;
+            document.getElementById('photoModal').classList.remove('hidden');
+        }
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+        }
+
+        // --- 6. TARJETA DE INVITACIÓN CON RASPADITO MÁGICO ---
+        function initScratchCard() {
+            const sCanvas = document.getElementById('scratchCanvas');
+            if(!sCanvas) return;
+            const sCtx = sCanvas.getContext('2d');
+            const rect = sCanvas.getBoundingClientRect();
+            sCanvas.width = rect.width;
+            sCanvas.height = rect.height;
+
+            sCtx.fillStyle = '#f4efe4';
+            sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+
+            sCtx.fillStyle = '#d4af37';
+            sCtx.font = 'bold 15px Cinzel';
+            sCtx.textAlign = 'center';
+            sCtx.fillText('✨ Rasca aquí ✨', sCanvas.width / 2, sCanvas.height / 2);
+
+            let isScratching = false;
+
+            function scratch(e) {
+                if (!isScratching) return;
+                const cRect = sCanvas.getBoundingClientRect();
+                const x = (e.clientX || (e.touches && e.touches[0].clientX)) - cRect.left;
+                const y = (e.clientY || (e.touches && e.touches[0].clientY)) - cRect.top;
+
+                sCtx.globalCompositeOperation = 'destination-out';
+                sCtx.beginPath();
+                sCtx.arc(x, y, 25, 0, Math.PI * 2);
+                sCtx.fill();
+            }
+
+            sCanvas.addEventListener('mousedown', () => isScratching = true);
+            sCanvas.addEventListener('mouseup', () => isScratching = false);
+            sCanvas.addEventListener('mousemove', scratch);
+
+            sCanvas.addEventListener('touchstart', () => isScratching = true);
+            sCanvas.addEventListener('touchend', () => isScratching = false);
+            sCanvas.addEventListener('touchmove', scratch);
+        }
+
+        // --- 5. CALENDARIO MÁGICO CON GOOGLE CALENDAR ---
+        function addCalendarEvent() {
+            const title = encodeURIComponent("Mis XV Años - Valerie");
+            const details = encodeURIComponent("Celebración de los 15 Años de Valerie en el Club de Obras Públicas.");
+            const location = encodeURIComponent("Salón de Eventos Club de Obras Públicas");
+            const startDate = "20270124T180000";
+            const endDate = "20270125T020000";
+            
+            const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&location=${location}`;
+            window.open(googleCalUrl, '_blank');
+        }
+
+        // --- 7. BUSCADOR & PROBADOR DE DRESS CODE ---
+        function checkOutfitColor() {
+            const input = document.getElementById('colorCheckInput').value.toLowerCase().trim();
+            const resultDiv = document.getElementById('outfitResult');
+            resultDiv.classList.remove('hidden');
+
+            if(input.includes('azul') || input.includes('blue') || input.includes('celeste') || input.includes('turquesa') || input.includes('marino')) {
+                resultDiv.className = "mt-3 p-3 rounded-xl text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300";
+                resultDiv.innerHTML = '<i class="fa-solid fa-circle-xmark text-base block mb-1"></i> Los tonos azules están estrictamente reservados para la Quinceañera Valerie 👑.';
+            } else if (input === '') {
+                resultDiv.className = "mt-3 p-3 rounded-xl text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300";
+                resultDiv.innerText = "Por favor escribe un color (Ej. Rosa, Dorado, Negro...)";
+            } else {
+                resultDiv.className = "mt-3 p-3 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300";
+                resultDiv.innerHTML = `<i class="fa-solid fa-circle-check text-base block mb-1"></i> ¡Excelente! El color <b>${input.toUpperCase()}</b> es bienvenido a la fiesta ✨.`;
+            }
+        }
+
+        // --- 8. PLAYLIST DE SUGERENCIAS CON LIKES ---
+        function submitSong() {
+            const input = document.getElementById('songInput');
+            const songName = input.value.trim();
+            if(songName !== '') {
+                const songList = document.getElementById('songList');
+                const newSong = document.createElement('div');
+                newSong.className = "p-2.5 bg-white/90 rounded-xl flex items-center justify-between text-xs border border-amber-200 animate-pulse";
+                newSong.innerHTML = `
+                    <div>
+                        <p class="font-bold text-sky-900">${songName}</p>
+                        <p class="text-[10px] text-slate-500">Sugerida recientemente</p>
+                    </div>
+                    <button onclick="likeSong(this)" class="px-2.5 py-1 bg-amber-50 rounded-full text-rose-600 border border-amber-200 font-bold text-[10px] hover:scale-105 transition">
+                        ❤️ <span class="like-count">1</span>
+                    </button>
+                `;
+                songList.prepend(newSong);
+                input.value = '';
+            }
+        }
+
+        function likeSong(btn) {
+            const countSpan = btn.querySelector('.like-count');
+            let count = parseInt(countSpan.innerText);
+            countSpan.innerText = count + 1;
+        }
+
+        // --- 9. CONTADOR REGRESIVO ANIMADO ---
+        const eventDate = new Date('January 24, 2027 18:00:00').getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = eventDate - now;
+
+            if (distance < 0) {
+                document.getElementById('days').innerText = "00";
+                document.getElementById('hours').innerText = "00";
+                document.getElementById('minutes').innerText = "00";
+                document.getElementById('seconds').innerText = "00";
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = days < 10 ? '0' + days : days;
+            document.getElementById('hours').innerText = hours < 10 ? '0' + hours : hours;
+            document.getElementById('minutes').innerText = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('seconds').innerText = seconds < 10 ? '0' + seconds : seconds;
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>
